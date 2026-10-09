@@ -1,0 +1,216 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Sparkles, Shield, Lock, ArrowRight, Dog, Loader2, AlertCircle } from 'lucide-react';
+import { Button } from './Button';
+import { useUser } from '@clerk/react';
+import { useMutation, useQuery } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
+import { initializePaddle, Paddle } from '@paddle/paddle-js';
+
+// Environment tokens directly copied
+const PADDLE_CLIENT_TOKEN = "test_b503a3450cb3219fa5267a7ef42";
+const PADDLE_PRICE_ID = "pri_01m43jma0epjpm0dhn9k3rbp47";
+
+interface PaddlePaywallProps {
+  onSignOut: () => void;
+}
+
+export const PaddlePaywall: React.FC<PaddlePaywallProps> = ({ onSignOut }) => {
+  const { user } = useUser();
+  const userEmail = user?.primaryEmailAddress?.emailAddress || '';
+  
+  const [paddle, setPaddle] = useState<Paddle>();
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+
+  const paddleRef = useRef<Paddle>();
+  // Initialize Paddle.js
+  const initialized = useRef(false);
+  useEffect(() => {
+    if (initialized.current) return;
+    initialized.current = true;
+    initializePaddle({
+      environment: 'sandbox', 
+      token: PADDLE_CLIENT_TOKEN,
+      eventCallback: function(data) {
+        if (data.name === "checkout.completed") {
+          setIsVerifying(true);
+          
+          // Close the overlay automatically
+          if (paddleRef.current) {
+            paddleRef.current.Checkout.close();
+          }
+
+          // When checkout completes, wait a few seconds for the webhook to hit our Convex backend
+          const timeout = setTimeout(() => {
+            setIsVerifying(false);
+            setShowError(true);
+          }, 6000);
+        }
+      }
+    }).then((paddleInstance) => {
+      if (paddleInstance) {
+        setPaddle(paddleInstance);
+        paddleRef.current = paddleInstance;
+      }
+    });
+  }, []);
+
+  const openCheckout = () => { setIsCheckoutOpen(true); };
+
+  useEffect(() => {
+    if (isCheckoutOpen && paddle) {
+      const checkoutOptions = {
+        settings: {
+          displayMode: 'inline',
+          frameTarget: 'paddle-inline-frame',
+          frameInitialHeight: 450,
+          frameStyle: 'width: 100%; min-width: 312px; background-color: transparent; border: none;'
+        },
+        items: [{ priceId: PADDLE_PRICE_ID, quantity: 1 }],
+        customer: userEmail ? { email: userEmail } : undefined,
+        customData: userEmail ? { email: userEmail } : undefined
+      };
+      paddle.Checkout.open(checkoutOptions);
+    }
+  }, [isCheckoutOpen, paddle, userEmail]);
+
+  const FeatureItem = ({ text }: { text: string }) => (
+    <div className="flex items-center gap-3">
+      <div className="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+        <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+      </div>
+      <span className="text-[#2C211B] font-medium">{text}</span>
+    </div>
+  );
+
+  const webhookLogs = useQuery(api.debugLogs.getWebhookLogs);
+
+  return (
+    <div className="min-h-screen bg-[#FFF9F2] flex items-center justify-center p-4 sm:p-8">
+      <div className="max-w-4xl w-full bg-white rounded-3xl overflow-hidden shadow-2xl border border-[#F5F0EA] flex flex-col md:flex-row">
+        
+        {/* Left Side: Illustration / Brand */}
+        <div className="md:w-5/12 bg-[#8B5E3C] p-10 flex flex-col justify-between relative overflow-hidden text-white">
+          <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+          
+          <div className="relative z-10 flex items-center gap-2 mb-12">
+            <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
+              <Dog className="w-6 h-6 text-white" />
+            </div>
+            <span className="font-bold text-xl tracking-tight">PupLume</span>
+          </div>
+
+          <div className="relative z-10 space-y-6">
+            <h2 className="text-3xl font-extrabold leading-tight">
+              Unlock the Ultimate Puppy OS.
+            </h2>
+            <p className="text-white/80 font-medium leading-relaxed">
+              No subscriptions. No limits. Pay once and get lifetime access to all features, including unlimited AI training advice.
+            </p>
+          </div>
+
+          <div className="relative z-10 mt-12 flex items-center gap-4 text-sm font-medium text-white/70">
+            <Shield className="w-5 h-5" />
+            <span>Secure checkout by Paddle</span>
+          </div>
+        </div>
+
+        {/* Right Side: Payment Form */}
+        <div className="md:w-7/12 flex flex-col justify-between">
+          
+          <div className="p-8 px-10 border-b border-[#F5F0EA] flex items-center justify-between">
+            <div className="flex items-center gap-2 text-amber-600 font-bold tracking-widest text-xs uppercase bg-amber-50 px-3 py-1.5 rounded-full">
+              <Lock className="w-3.5 h-3.5" />
+              <span>Lifetime Access</span>
+            </div>
+            <button onClick={onSignOut} className="text-sm font-medium text-[#766A63] hover:text-[#2C211B] transition-colors underline-offset-4 hover:underline">
+              Sign out
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="p-8 px-10">
+            
+            {isVerifying && (
+              <div className="mb-6 p-4 bg-amber-50 rounded-2xl border border-amber-200 flex items-center justify-center gap-3 text-amber-800 animate-pulse">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span className="font-semibold text-sm">Verifying your payment...</span>
+              </div>
+            )}
+
+            {showError && (
+              <div className="mb-6 p-4 bg-red-50 rounded-2xl border border-red-200 flex items-start gap-3 text-red-800 animate-in fade-in zoom-in duration-300">
+                <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-red-500" />
+                <div className="text-sm font-medium">
+                  <span className="font-bold block text-red-700">Payment successful, but app unlock delayed.</span>
+                  Our server is waiting for Paddle to send the payment confirmation. Please refresh the page or check your email for a receipt. If the issue persists, contact support.
+                </div>
+              </div>
+            )}
+
+            {!isCheckoutOpen ? (
+              <>
+                <div className="space-y-5 mb-10">
+                  <FeatureItem text="Unlimited AI Co-Pilot chat" />
+                  <FeatureItem text="Full access to Training Academy" />
+                  <FeatureItem text="Unlimited Potty, Sleep & Health logging" />
+                  <FeatureItem text="Export to Vet reports & PDF sharing" />
+                </div>
+
+                <div className="bg-[#FFF9F2] p-6 rounded-2xl border border-[#F5F0EA] mb-8">
+                  <div className="flex items-baseline gap-2 mb-2">
+                    <span className="text-4xl font-extrabold text-[#2C211B]">$24.99</span>
+                    <span className="text-[#766A63] font-medium text-sm">one-time payment</span>
+                  </div>
+                  <p className="text-sm text-[#766A63] font-medium">No recurring fees. Ever.</p>
+                </div>
+
+                <Button 
+                  size="lg" 
+                  className="w-full h-14 text-base font-bold flex items-center justify-center gap-2 shadow-xl shadow-amber-600/20"
+                  onClick={openCheckout}
+                >
+                  Get PupLume Forever
+                  <ArrowRight className="w-5 h-5" />
+                </Button>
+                <p className="text-center text-xs text-[#9C928B] mt-4 font-medium">
+                  You are signed in as <span className="text-[#2C211B] font-bold">{userEmail}</span>
+                </p>
+              </>
+            ) : (
+              <div className="min-h-[450px] w-full animate-in fade-in duration-500">
+                <div className="paddle-inline-frame w-full"></div>
+                <button 
+                  onClick={() => setIsCheckoutOpen(false)} 
+                  className="mt-6 text-sm text-[#766A63] hover:text-[#2C211B] font-medium underline flex items-center justify-center w-full"
+                >
+                  Cancel and go back
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Temporary Webhook Logs */}
+          <div className="p-6 px-10 bg-[#FAFAFA] border-t border-[#F5F0EA]">
+            <p className="text-xs text-[#9C928B] font-bold mb-2 uppercase tracking-wider">Live Webhook Logs</p>
+            <div className="space-y-2">
+              {webhookLogs === undefined ? (
+                <div className="text-xs text-gray-500">Loading logs...</div>
+              ) : webhookLogs.length === 0 ? (
+                <div className="text-xs text-gray-500">No webhooks received yet.</div>
+              ) : (
+                webhookLogs.map((log: any) => (
+                  <div key={log._id} className="text-[10px] font-mono bg-gray-100 p-2 rounded text-gray-800 break-all">
+                    <span className="font-bold text-amber-600">[{new Date(log._creationTime).toLocaleTimeString()}]</span> {log.action}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+};

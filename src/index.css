@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+:root {
+  --primary: #8B5E3C;
+  --primary-dark: #5F3E29;
+  --cream: #FFF9F2;
+  --surface: #FFFFFF;
+  --beige: #F3E7DA;
+  --peach: #E9B89C;
+  --sage: #A8B59A;
+  --text: #2C211B;
+  --muted: #766A63;
+  --border: #E8DDD3;
+}
+
+body {
+  font-family: 'Outfit', system-ui, sans-serif;
+  background-color: #FFF9F2;
+  color: #2C211B;
+  -webkit-tap-highlight-color: transparent;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+input, textarea {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* Custom utility for subtle smooth scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #E8DDD3;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #C4B5A5;
+}
+
+
+/* Bespoke typography overrides for Headings */
+h1, h2, h3, h4, h5, h6, .brand-heading {
+  font-family: 'Outfit', system-ui, sans-serif;
+  font-weight: 700;
+}
+
+
+button, .btn, [role="button"] {
+  font-family: 'Grandstander', cursive;
+}

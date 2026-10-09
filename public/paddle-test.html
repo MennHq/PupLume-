@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
+  <script>
+    Paddle.Environment.set('sandbox');
+    Paddle.Initialize({
+      token: 'test_b503a3450cb3219fa5267a7ef42',
+      eventCallback: function(data) { console.log(data); }
+    });
+    function openCheckout() {
+      Paddle.Checkout.open({
+        items: [{ priceId: 'pri_01m43jma0epjpm0dhn9k3rbp47', quantity: 1 }],
+        customer: { email: 'test@example.com' }
+      });
+    }
+  </script>
+</head>
+<body>
+  <button onclick="openCheckout()">Checkout</button>
+</body>
+</html>

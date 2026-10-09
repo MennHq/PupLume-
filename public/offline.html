@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>No Internet Connection — PupLume</title>
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <meta name="theme-color" content="#8B5E3C" />
+  <style>
+    :root {
+      --bg: #FFF9F2;
+      --card-bg: #FFFFFF;
+      --primary: #8B5E3C;
+      --primary-hover: #724A2D;
+      --primary-light: #F3E7DA;
+      --primary-subtle: #FFF4E8;
+      --text: #2C211B;
+      --text-muted: #766A63;
+      --border: #E8DDD3;
+      --warning: #D97706;
+      --warning-bg: #FEF3C7;
+      --success: #15803D;
+      --success-bg: #DCFCE7;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      box-shadow: 0 10px 30px -10px rgba(139, 94, 60, 0.12), 0 4px 12px -2px rgba(0, 0, 0, 0.05);
+      padding: 36px 28px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .top-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--warning-bg);
+      color: var(--warning);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      margin-bottom: 24px;
+      letter-spacing: 0.02em;
+      border: 1px solid rgba(217, 119, 6, 0.2);
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--warning);
+      box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.7);
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.7);
+      }
+      70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 8px rgba(217, 119, 6, 0);
+      }
+      100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(217, 119, 6, 0);
+      }
+    }
+
+    .icon-container {
+      position: relative;
+      width: 88px;
+      height: 88px;
+      background: linear-gradient(135deg, #FFF4E8 0%, #F5EAE0 100%);
+      border: 2px dashed rgba(139, 94, 60, 0.35);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px auto;
+      color: var(--primary);
+    }
+
+    .icon-container svg {
+      width: 44px;
+      height: 44px;
+      stroke: var(--primary);
+    }
+
+    .sub-icon {
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+      background: #D97706;
+      color: white;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid white;
+    }
+
+    .sub-icon svg {
+      width: 14px;
+      height: 14px;
+      stroke: white;
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 10px;
+      letter-spacing: -0.02em;
+    }
+
+    p.description {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+
+    .troubleshoot-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px 18px;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+
+    .troubleshoot-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .troubleshoot-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .troubleshoot-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .troubleshoot-list li svg {
+      width: 16px;
+      height: 16px;
+      min-width: 16px;
+      color: var(--primary);
+      margin-top: 2px;
+    }
+
+    .cache-notice {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--primary-subtle);
+      border: 1px solid rgba(139, 94, 60, 0.2);
+      border-radius: 14px;
+      padding: 10px 14px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 24px;
+      text-align: left;
+    }
+
+    .cache-notice svg {
+      width: 16px;
+      height: 16px;
+      min-width: 16px;
+      color: var(--primary);
+    }
+
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 16px;
+      padding: 14px 20px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(139, 94, 60, 0.25);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:active {
+      transform: translateY(1px);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-secondary:hover {
+      background: var(--primary-light);
+    }
+
+    .status-feedback {
+      margin-top: 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--warning);
+      display: none;
+    }
+
+    .spin {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .footer-brand {
+      margin-top: 24px;
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .footer-brand svg {
+      width: 14px;
+      height: 14px;
+      fill: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-badge">
+      <span class="pulse-dot"></span>
+      <span>No Internet Connection</span>
+    </div>
+
+    <div class="icon-container">
+      <!-- Wifi Off SVG -->
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="1" y1="1" x2="23" y2="23"></line>
+        <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path>
+        <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path>
+        <path d="M10.71 5.05A16 16 0 0 1 22.58 9"></path>
+        <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path>
+        <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+        <line x1="12" y1="20" x2="12.01" y2="20"></line>
+      </svg>
+      <div class="sub-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+      </div>
+    </div>
+
+    <h1>You Are Offline</h1>
+    <p class="description">
+      Your device is currently disconnected from the internet. Please try to connect with the internet to sync puppy records, AI suggestions, and training schedules.
+    </p>
+
+    <div class="cache-notice">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+      </svg>
+      <span><strong>Cached Data Safe:</strong> Your local puppy routine and offline guides are saved in cache and safe.</span>
+    </div>
+
+    <div class="troubleshoot-box">
+      <div class="troubleshoot-title">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+        Try these steps to reconnect:
+      </div>
+      <ul class="troubleshoot-list">
+        <li>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          Check your Wi-Fi or cellular network switch
+        </li>
+        <li>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          Ensure Airplane mode is disabled
+        </li>
+        <li>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          Verify your home router or modem connection
+        </li>
+      </ul>
+    </div>
+
+    <div class="actions">
+      <button id="retry-btn" class="btn-primary" onclick="tryReconnect()">
+        <svg id="retry-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <polyline points="1 20 1 14 7 14"></polyline>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+        </svg>
+        <span id="retry-text">Try Reconnecting</span>
+      </button>
+
+      <button class="btn-secondary" onclick="openCachedApp()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+        <span>Open Cached App</span>
+      </button>
+    </div>
+
+    <div id="status-feedback" class="status-feedback"></div>
+  </div>
+
+  <div class="footer-brand">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+    </svg>
+    <span>PupLume — Stored safely in offline cache</span>
+  </div>
+
+  <script>
+    const statusEl = document.getElementById('status-feedback');
+    const retryBtn = document.getElementById('retry-btn');
+    const retryIcon = document.getElementById('retry-icon');
+    const retryText = document.getElementById('retry-text');
+
+    // Automatically detect when network comes back online
+    window.addEventListener('online', () => {
+      onNetworkRestored();
+    });
+
+    function onNetworkRestored() {
+      if (statusEl) {
+        statusEl.style.display = 'block';
+        statusEl.style.color = 'var(--success)';
+        statusEl.textContent = '✓ Internet restored! Connecting to PupLume...';
+      }
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1200);
+    }
+
+    async function tryReconnect() {
+      if (!retryBtn) return;
+      retryBtn.disabled = true;
+      retryIcon.classList.add('spin');
+      retryText.textContent = 'Testing connection...';
+      statusEl.style.display = 'none';
+
+      try {
+        // Ping with cache busting
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4000);
+        const res = await fetch('/favicon.png?_ping=' + Date.now(), {
+          method: 'HEAD',
+          cache: 'no-store',
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (res.ok || navigator.onLine) {
+          onNetworkRestored();
+          return;
+        }
+      } catch (err) {
+        // Still offline
+      }
+
+      setTimeout(() => {
+        retryBtn.disabled = false;
+        retryIcon.classList.remove('spin');
+        retryText.textContent = 'Try Reconnecting';
+        statusEl.style.display = 'block';
+        statusEl.style.color = 'var(--warning)';
+        statusEl.textContent = '⚠ Still offline. Please check your network and try again.';
+      }, 800);
+    }
+
+    function openCachedApp() {
+      window.location.href = '/';
+    }
+
+    // Periodic check every 5 seconds
+    setInterval(() => {
+      if (navigator.onLine) {
+        fetch('/favicon.png?_ping=' + Date.now(), { method: 'HEAD', cache: 'no-store' })
+          .then(() => onNetworkRestored())
+          .catch(() => {});
+      }
+    }, 5000);
+  </script>
+</body>
+</html>

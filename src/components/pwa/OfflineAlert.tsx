@@ -1,0 +1,121 @@
+import React, { useState, useEffect } from 'react';
+import { WifiOff, RotateCw, AlertTriangle, CheckCircle2, ChevronRight } from 'lucide-react';
+import { useNetworkStatus } from '../../hooks/useNetworkStatus';
+import { OfflinePageModal } from './OfflinePageModal';
+
+export const OfflineAlert: React.FC = () => {
+  const { isOnline, isChecking, wasOffline, checkConnection } = useNetworkStatus();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showReconnectedToast, setShowReconnectedToast] = useState(false);
+  const [hasPromptedModal, setHasPromptedModal] = useState(false);
+
+  // If reconnected after being offline, show brief reassuring toast
+  useEffect(() => {
+    if (isOnline && wasOffline) {
+      setShowReconnectedToast(true);
+      const timer = setTimeout(() => {
+        setShowReconnectedToast(false);
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [isOnline, wasOffline]);
+
+  // When connection drops, prompt once and keep banner visible
+  useEffect(() => {
+    if (!isOnline && !hasPromptedModal) {
+      setHasPromptedModal(true);
+    }
+  }, [isOnline, hasPromptedModal]);
+
+  // When back online, reset modal prompt so if network drops again, it works
+  useEffect(() => {
+    if (isOnline) {
+      setHasPromptedModal(false);
+      setIsModalOpen(false);
+    }
+  }, [isOnline]);
+
+  // 1. Brief reconnected toast
+  if (showReconnectedToast && isOnline) {
+    return (
+      <aside 
+        aria-label="Internet connection restored"
+        className="fixed top-3 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 rounded-full bg-emerald-700 px-4 py-2 text-xs font-bold text-white shadow-xl animate-in fade-in slide-in-from-top-3 duration-300"
+      >
+        <CheckCircle2 className="w-4 h-4 text-emerald-200" />
+        <span>Internet connection restored — PupLume is online</span>
+      </aside>
+    );
+  }
+
+  // 2. Strict requirement: SHOW THIS ONLY WHEN THE USER IS OFFLINE
+  if (isOnline) {
+    return null;
+  }
+
+  return (
+    <>
+      {/* Sticky Top Internet Connection Alert Banner */}
+      <aside
+        role="alert"
+        aria-live="assertive"
+        className="sticky top-0 z-50 w-full bg-gradient-to-r from-[#8B5E3C] via-[#7B5132] to-[#6A4328] text-white px-3 sm:px-4 py-2.5 shadow-md border-b border-[#A06E47] animate-in fade-in slide-in-from-top duration-300"
+      >
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-4 text-xs">
+          {/* Alert Message */}
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="relative flex h-2.5 w-2.5 shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-300 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-400"></span>
+            </span>
+
+            <div className="flex items-center gap-1.5 shrink-0 p-1 rounded-md bg-black/20">
+              <WifiOff className="w-3.5 h-3.5 text-amber-300" />
+            </div>
+
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <strong className="font-bold text-white tracking-wide">
+                No Internet Connection:
+              </strong>
+              <span className="text-[#F5EAE0]">
+                Fully disconnected. Please try to connect with the internet.
+              </span>
+              <span className="hidden md:inline text-[11px] bg-white/15 px-2 py-0.5 rounded-full text-amber-200 font-medium">
+                Using cached data
+              </span>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
+            <button
+              onClick={() => checkConnection()}
+              disabled={isChecking}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white text-[#2C211B] font-bold text-xs hover:bg-[#FFF4E8] active:scale-95 transition-all shadow-xs cursor-pointer disabled:opacity-60"
+              title="Test internet connection"
+            >
+              <RotateCw className={`w-3.5 h-3.5 text-[#8B5E3C] ${isChecking ? 'animate-spin' : ''}`} />
+              <span>{isChecking ? 'Checking...' : 'Try Reconnecting'}</span>
+            </button>
+
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-black/25 text-white font-semibold text-xs hover:bg-black/35 transition-colors cursor-pointer"
+            >
+              <span>Troubleshoot</span>
+              <ChevronRight className="w-3.5 h-3.5 text-amber-300" />
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      {/* Full-Feature Professional Offline Page Modal */}
+      <OfflinePageModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onRetry={checkConnection}
+        isChecking={isChecking}
+      />
+    </>
+  );
+};
