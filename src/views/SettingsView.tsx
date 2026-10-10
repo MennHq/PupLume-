@@ -151,10 +151,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
         ctx.fillRect(0, 0, 512, 512);
 
         ctx.fillStyle = '#FFFFFF';
-        let fontSize = Math.floor(512 / (cleanName.length * 0.55));
-        if (fontSize > 160) fontSize = 160;
         
+        // Dynamically measure and scale text to fit inside the circular safe zone (approx 380px max width)
+        let fontSize = 160;
         ctx.font = `900 ${fontSize}px "Grandstander", system-ui, sans-serif`;
+        while (ctx.measureText(cleanName).width > 400 && fontSize > 30) {
+          fontSize -= 5;
+          ctx.font = `900 ${fontSize}px "Grandstander", system-ui, sans-serif`;
+        }
+        
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
