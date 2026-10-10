@@ -80,15 +80,17 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
         const ctx = canvas.getContext('2d');
         if (!ctx) return reject('No 2d context');
 
+        const displayText = cleanName.length <= 4 ? cleanName : cleanName.charAt(0).toUpperCase();
+
         ctx.fillStyle = '#FFFDFE';
         ctx.fillRect(0, 0, 512, 512);
 
         ctx.fillStyle = '#5F3E29'; // Dark brown text
         
-        // Dynamically measure and scale text to fit inside the circular safe zone (approx 380px max width)
-        let fontSize = 160;
+        // Dynamically measure and scale text to fit inside the circular safe zone
+        let fontSize = cleanName.length <= 4 ? 160 : 320;
         ctx.font = `900 ${fontSize}px "Grandstander", system-ui, sans-serif`;
-        while (ctx.measureText(cleanName).width > 400 && fontSize > 30) {
+        while (ctx.measureText(displayText).width > 400 && fontSize > 30) {
           fontSize -= 5;
           ctx.font = `900 ${fontSize}px "Grandstander", system-ui, sans-serif`;
         }
@@ -100,7 +102,8 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
         ctx.shadowBlur = 10;
         ctx.shadowOffsetY = 4;
         
-        ctx.fillText(cleanName, 256, 270);
+        const yOffset = cleanName.length <= 4 ? 270 : 285;
+        ctx.fillText(displayText, 256, yOffset);
 
         canvas.toBlob((blob) => {
           if (blob) resolve(blob);
