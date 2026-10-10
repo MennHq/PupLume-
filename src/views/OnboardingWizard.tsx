@@ -53,11 +53,21 @@ const COMMON_BREEDS = [
   'Mixed Breed / Mutt'
 ];
 
+import { useUser } from '@clerk/react';
+
 export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, onCancel, userId }) => {
+  const { user } = useUser();
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4 | 5>(1);
 
   // Profile data
-  const [userName, setUserName] = useState('');
+  const [userName, setUserName] = useState(user?.firstName || user?.fullName || '');
+  
+  React.useEffect(() => {
+    if (user && !userName) {
+      setUserName(user.firstName || user.fullName || '');
+    }
+  }, [user]);
+
   const [puppyName, setPuppyName] = useState('');
   const [breed, setBreed] = useState('');
   const [sex, setSex] = useState<'male' | 'female'>('male');
