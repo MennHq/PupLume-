@@ -122,11 +122,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
   };
 
   const generateInitialAvatar = async (name: string): Promise<Blob> => {
-    const initial = name.trim().charAt(0).toUpperCase() || 'P';
+    const cleanName = name.trim();
+    const initial = cleanName.charAt(0).toUpperCase() || 'P';
     const colors = ['8B5E3C', 'A8B59A', 'D9A05B', '6D492F', 'E89D7F', '5F3E29', 'C2A385', '9B6A6C', '4A6D7C'];
     const bgColor = colors[initial.charCodeAt(0) % colors.length];
     
-    const response = await fetch(`https://ui-avatars.com/api/?name=${encodeURIComponent(initial)}&background=${bgColor}&color=fff&size=256&font-size=0.5&bold=true`);
+    // Using placehold.co to perfectly render the full name with the app's Grandstander font
+    const url = `https://placehold.co/400x400/${bgColor}/FFFFFF.png?text=${encodeURIComponent(cleanName)}&font=Grandstander`;
+    const response = await fetch(url);
     if (!response.ok) throw new Error('Failed to generate avatar');
     return await response.blob();
   };
