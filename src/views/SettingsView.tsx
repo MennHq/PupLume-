@@ -154,10 +154,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
   };
 
   const handleUpdateName = async () => {
-    if (!user || !userName.trim() || userName.trim() === user.firstName) return;
+    if (!user || !userName.trim()) return;
     setIsUpdatingName(true);
     try {
-      await user.update({ firstName: userName.trim() });
+      if (userName.trim() !== user.firstName) {
+        await user.update({ firstName: userName.trim() });
+      }
       const avatarFile = await generateInitialAvatar(userName.trim());
       await user.setProfileImage({ file: avatarFile });
       showStatus("Your name and profile picture have been updated!");
@@ -201,9 +203,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
             />
             <Button 
               onClick={handleUpdateName} 
-              disabled={isUpdatingName || !userName.trim() || userName.trim() === user?.firstName}
+              disabled={isUpdatingName || !userName.trim()}
             >
-              {isUpdatingName ? 'Saving...' : 'Update'}
+              {isUpdatingName ? 'Saving...' : 'Update & Generate Logo'}
             </Button>
           </div>
         </div>
