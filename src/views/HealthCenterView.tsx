@@ -29,6 +29,30 @@ interface HealthCenterViewProps {
   puppy: PuppyProfile;
 }
 
+const generateGoogleCalendarUrl = (apt: VetAppointment) => {
+  const startDate = apt.date.replace(/-/g, '');
+  const startTime = apt.time.replace(':', '') + '00';
+  
+  const [hour, minute] = apt.time.split(':');
+  const endHour = String((parseInt(hour, 10) + 1) % 24).padStart(2, '0');
+  const endTime = endHour + minute + '00';
+
+  const dates = `${startDate}T${startTime}/${startDate}T${endTime}`;
+  const details = `Reason: ${apt.reason}\nNotes: ${apt.notes || ''}`;
+  const location = apt.clinic;
+
+  const url = new URL('https://calendar.google.com/calendar/render');
+  url.searchParams.append('action', 'TEMPLATE');
+  url.searchParams.append('text', apt.title);
+  url.searchParams.append('dates', dates);
+  url.searchParams.append('details', details);
+  if (location) {
+    url.searchParams.append('location', location);
+  }
+  
+  return url.toString();
+};
+
 export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy }) => {
   const [activeTab, setActiveTab] = useState<'vaccines' | 'meds' | 'appointments' | 'weight'>('vaccines');
   const [vaccinations, setVaccinations] = useState<VaccinationRecord[]>(storage.getVaccinations());
@@ -410,8 +434,21 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy }) => 
                     )}
                   </div>
 
-                  <div className="text-xs font-bold text-[#8B5E3C] bg-[#FFF9F2] px-3 py-1.5 rounded-xl border border-[#E8DDD3] self-start sm:self-auto">
-                    {apt.doctor || 'Staff Vet'}
+                  <div className="flex flex-col sm:items-end gap-2 self-start sm:self-auto">
+                    <div className="text-xs font-bold text-[#8B5E3C] bg-[#FFF9F2] px-3 py-1.5 rounded-xl border border-[#E8DDD3]">
+                      {apt.doctor || 'Staff Vet'}
+                    </div>
+                    {apt.status === 'scheduled' && (
+                      <a 
+                        href={generateGoogleCalendarUrl(apt)} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="flex items-center justify-center gap-1.5 text-[11px] font-bold text-white bg-[#4285F4] hover:bg-[#3367D6] px-3 py-1.5 rounded-xl transition-all shadow-sm hover:shadow active:scale-95"
+                      >
+                        <CalendarIcon className="w-3 h-3" />
+                        Add to Calendar
+                      </a>
+                    )}
                   </div>
                 </div>
               ))}

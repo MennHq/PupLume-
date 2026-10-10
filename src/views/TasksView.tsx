@@ -24,6 +24,30 @@ interface TasksViewProps {
   onOpenLesson: (lessonId: string) => void;
 }
 
+const generateTaskGoogleCalendarUrl = (task: TaskItem) => {
+  const startDate = (task.date || new Date().toISOString().split('T')[0]).replace(/-/g, '');
+  const startTime = task.time.replace(':', '') + '00';
+  
+  const [hourStr, minStr] = task.time.split(':');
+  const duration = task.durationMin || 30;
+  
+  const tempDate = new Date();
+  tempDate.setHours(parseInt(hourStr, 10), parseInt(minStr, 10) + duration, 0);
+  const endHour = String(tempDate.getHours()).padStart(2, '0');
+  const endMinute = String(tempDate.getMinutes()).padStart(2, '0');
+  const endTime = endHour + endMinute + '00';
+
+  const dates = `${startDate}T${startTime}/${startDate}T${endTime}`;
+
+  const url = new URL('https://calendar.google.com/calendar/render');
+  url.searchParams.append('action', 'TEMPLATE');
+  url.searchParams.append('text', task.title);
+  url.searchParams.append('dates', dates);
+  if (task.description) url.searchParams.append('details', task.description);
+  
+  return url.toString();
+};
+
 export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson }) => {
   const [tasks, setTasks] = useState<TaskItem[]>(storage.getTasks());
   const [activeFilter, setActiveFilter] = useState<'all' | 'pending' | 'completed'>('all');
@@ -388,6 +412,17 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson }) => 
                     <span className="flex items-center gap-1 font-semibold text-[#5F3E29]">
                       <Clock className="w-3.5 h-3.5" /> {task.time} ({task.durationMin} min)
                     </span>
+                    {!task.completed && (
+                      <a 
+                        href={generateTaskGoogleCalendarUrl(task)} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        onClick={(e) => e.stopPropagation()}
+                        className="flex items-center gap-1 text-[#4285F4] hover:text-[#3367D6] font-bold transition-colors ml-2"
+                      >
+                        <Calendar className="w-3 h-3" /> GCal
+                      </a>
+                    )}
                     <span className="capitalize text-[#766A63]">• {task.period}</span>
                     {task.completedAt && (
                       <span className="text-emerald-700 font-medium">✓ Done at {task.completedAt}</span>
