@@ -189,6 +189,7 @@ export const PaddlePaywall: React.FC<PaddlePaywallProps> = ({ onSignOut }) => {
                 </button>
               </div>
             )}
+          </div>
         </div>
       </div>
     </div>
