@@ -70,15 +70,55 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
 
   const generateInitialAvatar = async (name: string): Promise<Blob> => {
     const cleanName = name.trim();
-    const initial = cleanName.charAt(0).toUpperCase() || 'P';
-    const colors = ['8B5E3C', 'A8B59A', 'D9A05B', '6D492F', 'E89D7F', '5F3E29', 'C2A385', '9B6A6C', '4A6D7C'];
-    const bgColor = colors[initial.charCodeAt(0) % colors.length];
+    await document.fonts.ready; // Ensure Grandstander is loaded
     
-    // Using placehold.co to perfectly render the full name with the app's Grandstander font
-    const url = `https://placehold.co/400x400/${bgColor}/FFFFFF.png?text=${encodeURIComponent(cleanName)}&font=Grandstander`;
-    const response = await fetch(url);
-    if (!response.ok) throw new Error('Failed to generate avatar');
-    return await response.blob();
+    return new Promise((resolve, reject) => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return reject('No 2d context');
+
+        const gradients = [
+          ['#8B5E3C', '#D9A05B'], // PupLume gold/brown
+          ['#D9A05B', '#F3E7DA'], // Soft gold
+          ['#6D492F', '#A8B59A'], // Forest / Wood
+          ['#5F3E29', '#E89D7F'], // Sunset
+          ['#8B5E3C', '#C2A385'], // Warm latte
+          ['#9B6A6C', '#F3E7DA'], // Rose / Cream
+        ];
+        const initial = cleanName.charAt(0).toUpperCase() || 'P';
+        const [color1, color2] = gradients[initial.charCodeAt(0) % gradients.length];
+        
+        const gradient = ctx.createLinearGradient(0, 0, 512, 512);
+        gradient.addColorStop(0, color1);
+        gradient.addColorStop(1, color2);
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 512, 512);
+
+        ctx.fillStyle = '#FFFFFF';
+        let fontSize = Math.floor(512 / (cleanName.length * 0.55));
+        if (fontSize > 160) fontSize = 160;
+        
+        ctx.font = `900 ${fontSize}px "Grandstander", system-ui, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
+        ctx.shadowBlur = 20;
+        ctx.shadowOffsetY = 8;
+        
+        ctx.fillText(cleanName, 256, 270);
+
+        canvas.toBlob((blob) => {
+          if (blob) resolve(blob);
+          else reject('Failed to create blob');
+        }, 'image/png', 1.0);
+      } catch (e) {
+        reject(e);
+      }
+    });
   };
 
   const handleStep1Next = async () => {
