@@ -68,6 +68,13 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
     }
   }, [user]);
 
+  const handleStep1Next = () => {
+    if (user && userName.trim() && userName.trim() !== user.firstName) {
+      user.update({ firstName: userName.trim() }).catch(console.warn);
+    }
+    setCurrentStep(2);
+  };
+
   const [puppyName, setPuppyName] = useState('');
   const [breed, setBreed] = useState('');
   const [sex, setSex] = useState<'male' | 'female'>('male');
@@ -184,6 +191,15 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
   const handleFinalActivation = async () => {
     setIsSaving(true);
     try {
+      // Update Clerk User's First Name if they changed it
+      if (user && userName.trim() && userName.trim() !== user.firstName) {
+        try {
+          await user.update({ firstName: userName.trim() });
+        } catch (e) {
+          console.warn("Failed to update Clerk user name", e);
+        }
+      }
+
       const finalBirthDate = birthDate || new Date(Date.now() - 12 * 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
       const newPuppy: PuppyProfile = {
@@ -447,8 +463,8 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
             <div className="pt-4 border-t border-[#E8DDD3] flex justify-end">
               <Button
                 variant="primary"
-                onClick={() => setCurrentStep(2)}
-                disabled={!puppyName.trim()}
+                onClick={handleStep1Next}
+                disabled={!puppyName.trim() || !userName.trim()}
                 rightIcon={<ArrowRight className="w-4 h-4" />}
               >
                 Next: {puppyName.trim() || 'Puppy'}&apos;s Details
