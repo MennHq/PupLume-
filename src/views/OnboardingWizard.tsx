@@ -62,6 +62,18 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
   const [breed, setBreed] = useState('');
   const [sex, setSex] = useState<'male' | 'female'>('male');
   const [birthDate, setBirthDate] = useState<string>('');
+
+  const isBirthDateValid = React.useMemo(() => {
+    if (!birthDate) return false;
+    const date = new Date(birthDate);
+    if (isNaN(date.getTime())) return false;
+    const today = new Date();
+    if (date > today) return false;
+    const twentyYearsAgo = new Date();
+    twentyYearsAgo.setFullYear(today.getFullYear() - 25); // Safe upper limit for dog age
+    if (date < twentyYearsAgo) return false;
+    return true;
+  }, [birthDate]);
   const [photoUrl, setPhotoUrl] = useState('');
 
   // Household timings
@@ -522,14 +534,17 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
                   </span>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-col gap-1">
                   <input
                     type="date"
                     value={birthDate}
                     onChange={(e) => setBirthDate(e.target.value)}
                     max={new Date().toISOString().split('T')[0]}
-                    className="w-full p-3.5 bg-[#FAF6F0] border border-[#E8DDD3] rounded-2xl text-sm font-semibold text-[#2C211B] focus:outline-none focus:ring-2 focus:ring-[#8B5E3C]"
+                    className={`w-full p-3.5 bg-[#FAF6F0] border ${birthDate && !isBirthDateValid ? 'border-red-400 focus:ring-red-400' : 'border-[#E8DDD3] focus:ring-[#8B5E3C]'} rounded-2xl text-sm font-semibold text-[#2C211B] focus:outline-none focus:ring-2`}
                   />
+                  {birthDate && !isBirthDateValid && (
+                    <span className="text-[11px] font-bold text-red-500 mt-1">Please enter a valid, realistic birth date.</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -545,7 +560,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
               <Button
                 variant="primary"
                 onClick={() => setCurrentStep(3)}
-                disabled={!breed.trim() || !birthDate}
+                disabled={!breed.trim() || !isBirthDateValid}
                 rightIcon={<ArrowRight className="w-4 h-4" />}
               >
                 Next: Photo
