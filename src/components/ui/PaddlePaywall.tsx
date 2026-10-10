@@ -84,7 +84,7 @@ export const PaddlePaywall: React.FC<PaddlePaywallProps> = ({ onSignOut }) => {
     </div>
   );
 
-  const webhookLogs = useQuery(api.debugLogs.getWebhookLogs);
+
 
   return (
     <div className="min-h-screen bg-[#FFF9F2] flex items-center justify-center p-4 sm:p-8">
@@ -189,26 +189,6 @@ export const PaddlePaywall: React.FC<PaddlePaywallProps> = ({ onSignOut }) => {
                 </button>
               </div>
             )}
-          </div>
-
-          {/* Temporary Webhook Logs */}
-          <div className="p-6 px-10 bg-[#FAFAFA] border-t border-[#F5F0EA]">
-            <p className="text-xs text-[#9C928B] font-bold mb-2 uppercase tracking-wider">Live Webhook Logs</p>
-            <div className="space-y-2">
-              {webhookLogs === undefined ? (
-                <div className="text-xs text-gray-500">Loading logs...</div>
-              ) : webhookLogs.length === 0 ? (
-                <div className="text-xs text-gray-500">No webhooks received yet.</div>
-              ) : (
-                webhookLogs.map((log: any) => (
-                  <div key={log._id} className="text-[10px] font-mono bg-gray-100 p-2 rounded text-gray-800 break-all">
-                    <span className="font-bold text-amber-600">[{new Date(log._creationTime).toLocaleTimeString()}]</span> {log.action}
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
         </div>
       </div>
     </div>
