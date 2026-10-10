@@ -68,9 +68,51 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
     }
   }, [user]);
 
-  const handleStep1Next = () => {
-    if (user && userName.trim() && userName.trim() !== user.firstName) {
-      user.update({ firstName: userName.trim() }).catch(console.warn);
+  const generateInitialAvatar = (name: string): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = 256;
+        canvas.height = 256;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return reject('No 2d context');
+
+        const initial = name.trim().charAt(0).toUpperCase() || 'P';
+        const colors = ['#8B5E3C', '#A8B59A', '#D9A05B', '#6D492F', '#E89D7F', '#5F3E29', '#C2A385', '#9B6A6C', '#4A6D7C'];
+        const bgColor = colors[initial.charCodeAt(0) % colors.length];
+
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, 256, 256);
+
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 130px "Inter", Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(initial, 128, 145);
+
+        canvas.toBlob((blob) => {
+          if (blob) resolve(new File([blob], 'avatar.png', { type: 'image/png' }));
+          else reject('Failed to create blob');
+        }, 'image/png');
+      } catch (e) {
+        reject(e);
+      }
+    });
+  };
+
+  const handleStep1Next = async () => {
+    if (user && userName.trim()) {
+      try {
+        if (userName.trim() !== user.firstName) {
+          await user.update({ firstName: userName.trim() });
+        }
+        
+        // Generate and set the custom alphabet logo as profile picture
+        const avatarFile = await generateInitialAvatar(userName.trim());
+        await user.setProfileImage({ file: avatarFile });
+      } catch (err) {
+        console.warn("Failed to sync name or avatar to Clerk", err);
+      }
     }
     setCurrentStep(2);
   };

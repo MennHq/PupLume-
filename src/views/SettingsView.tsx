@@ -121,12 +121,46 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
     setTimeout(() => setIsSaved(false), 2000);
   };
 
+  const generateInitialAvatar = (name: string): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = 256;
+        canvas.height = 256;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return reject('No 2d context');
+
+        const initial = name.trim().charAt(0).toUpperCase() || 'P';
+        const colors = ['#8B5E3C', '#A8B59A', '#D9A05B', '#6D492F', '#E89D7F', '#5F3E29', '#C2A385', '#9B6A6C', '#4A6D7C'];
+        const bgColor = colors[initial.charCodeAt(0) % colors.length];
+
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, 256, 256);
+
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 130px "Inter", Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(initial, 128, 145);
+
+        canvas.toBlob((blob) => {
+          if (blob) resolve(new File([blob], 'avatar.png', { type: 'image/png' }));
+          else reject('Failed to create blob');
+        }, 'image/png');
+      } catch (e) {
+        reject(e);
+      }
+    });
+  };
+
   const handleUpdateName = async () => {
     if (!user || !userName.trim() || userName.trim() === user.firstName) return;
     setIsUpdatingName(true);
     try {
       await user.update({ firstName: userName.trim() });
-      showStatus("Your name has been updated!");
+      const avatarFile = await generateInitialAvatar(userName.trim());
+      await user.setProfileImage({ file: avatarFile });
+      showStatus("Your name and profile picture have been updated!");
     } catch (e) {
       console.error(e);
       showStatus("Failed to update name.");
