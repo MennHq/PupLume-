@@ -1271,7 +1271,7 @@ class StorageManager {
       const timeClean = apt.time.replace(/[^0-9]/g, '').padEnd(4, '0');
       ics.push(
         'BEGIN:VEVENT',
-        `UID:apt-${apt.id}@puplume.app`,
+        `UID:apt-${apt.id}@puplume.pet`,
         `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
         `DTSTART:${dt}T${timeClean}00Z`,
         `SUMMARY:${apt.title} - ${puppyName}`,
@@ -1286,7 +1286,7 @@ class StorageManager {
       const dt = t.date.replace(/-/g, '');
       ics.push(
         'BEGIN:VEVENT',
-        `UID:task-${t.id}@puplume.app`,
+        `UID:task-${t.id}@puplume.pet`,
         `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
         `DTSTART:${dt}T090000Z`,
         `SUMMARY:[PupLume] ${t.title}`,
