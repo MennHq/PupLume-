@@ -80,24 +80,10 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
         const ctx = canvas.getContext('2d');
         if (!ctx) return reject('No 2d context');
 
-        const gradients = [
-          ['#8B5E3C', '#D9A05B'], // PupLume gold/brown
-          ['#D9A05B', '#F3E7DA'], // Soft gold
-          ['#6D492F', '#A8B59A'], // Forest / Wood
-          ['#5F3E29', '#E89D7F'], // Sunset
-          ['#8B5E3C', '#C2A385'], // Warm latte
-          ['#9B6A6C', '#F3E7DA'], // Rose / Cream
-        ];
-        const initial = cleanName.charAt(0).toUpperCase() || 'P';
-        const [color1, color2] = gradients[initial.charCodeAt(0) % gradients.length];
-        
-        const gradient = ctx.createLinearGradient(0, 0, 512, 512);
-        gradient.addColorStop(0, color1);
-        gradient.addColorStop(1, color2);
-        ctx.fillStyle = gradient;
+        ctx.fillStyle = '#FFFDFE';
         ctx.fillRect(0, 0, 512, 512);
 
-        ctx.fillStyle = '#FFFFFF';
+        ctx.fillStyle = '#5F3E29'; // Dark brown text
         
         // Dynamically measure and scale text to fit inside the circular safe zone (approx 380px max width)
         let fontSize = 160;
@@ -110,9 +96,9 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
-        ctx.shadowBlur = 20;
-        ctx.shadowOffsetY = 8;
+        ctx.shadowColor = 'rgba(95, 62, 41, 0.15)';
+        ctx.shadowBlur = 10;
+        ctx.shadowOffsetY = 4;
         
         ctx.fillText(cleanName, 256, 270);
 
