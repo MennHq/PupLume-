@@ -38,6 +38,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
   const [backupStatus, setBackupStatus] = useState<string | null>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
+  const [userName, setUserName] = useState(user?.firstName || user?.fullName || '');
+  const [isUpdatingName, setIsUpdatingName] = useState(false);
+
+  React.useEffect(() => {
+    if (user && !userName) setUserName(user.firstName || user.fullName || '');
+  }, [user]);
+
   const cloudData = useQuery(api.app.getUserAppData, user?.id ? { userId: user.id } : 'skip');
   const memories = cloudData?.memories || [];
   const deleteMemory = useMutation(api.ai.deleteMemory);
@@ -114,6 +121,20 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
     setTimeout(() => setIsSaved(false), 2000);
   };
 
+  const handleUpdateName = async () => {
+    if (!user || !userName.trim() || userName.trim() === user.firstName) return;
+    setIsUpdatingName(true);
+    try {
+      await user.update({ firstName: userName.trim() });
+      showStatus("Your name has been updated!");
+    } catch (e) {
+      console.error(e);
+      showStatus("Failed to update name.");
+    } finally {
+      setIsUpdatingName(false);
+    }
+  };
+
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-24">
@@ -125,6 +146,33 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
         <p className="text-xs text-[#766A63] mt-1">
           Configure smart notification cadences, measurement systems, and data backup.
         </p>
+      </div>
+
+      {/* User Profile */}
+      <div className="p-6 rounded-3xl bg-white border border-[#E8DDD3] shadow-xs space-y-4">
+        <h3 className="text-sm font-bold text-[#2C211B] flex items-center gap-2">
+          <Smartphone className="w-4 h-4 text-[#8B5E3C]" />
+          Your Profile
+        </h3>
+        <div>
+          <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-2">
+            Your Name (Owner)
+          </label>
+          <div className="flex gap-2 max-w-sm">
+            <input
+              type="text"
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              className="flex-1 p-2.5 bg-[#FAF6F0] border border-[#E8DDD3] rounded-xl text-sm font-semibold text-[#2C211B] focus:outline-none focus:ring-2 focus:ring-[#8B5E3C]"
+            />
+            <Button 
+              onClick={handleUpdateName} 
+              disabled={isUpdatingName || !userName.trim() || userName.trim() === user?.firstName}
+            >
+              {isUpdatingName ? 'Saving...' : 'Update'}
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* Smart Notifications */}
