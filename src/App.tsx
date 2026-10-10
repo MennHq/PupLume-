@@ -91,7 +91,8 @@ export default function App() {
   const [puppy, setPuppy] = useState<PuppyProfile | null>(() => storage.getPuppy());
   const [currentView, setCurrentView] = useState<string>(() => {
     if (typeof window !== 'undefined') {
-      const path = window.location.pathname.replace(/^\/+/, '');
+      let path = window.location.pathname.replace(/^\/+/, '');
+      if (path === 'plan') path = 'tasks';
       return path || 'home';
     }
     return 'home';
@@ -115,7 +116,8 @@ export default function App() {
   // Handle browser back/forward buttons
   useEffect(() => {
     const handlePopState = () => {
-      const path = window.location.pathname.replace(/^\/+/, '');
+      let path = window.location.pathname.replace(/^\/+/, '');
+      if (path === 'plan') path = 'tasks';
       setCurrentView(path || 'home');
     };
     window.addEventListener('popstate', handlePopState);
@@ -126,7 +128,9 @@ export default function App() {
   useEffect(() => {
     const handleCustomNavigate = (e: any) => {
       if (e.detail && e.detail.view) {
-        setCurrentView(e.detail.view);
+        let view = e.detail.view;
+        if (view === 'plan') view = 'tasks';
+        setCurrentView(view);
       }
     };
     window.addEventListener('navigate', handleCustomNavigate);
