@@ -12,7 +12,8 @@ import {
   AlertCircle, 
   Phone, 
   Download,
-  ExternalLink 
+  ExternalLink,
+  Edit3 
 } from 'lucide-react';
 import { 
   PuppyProfile, 
@@ -27,6 +28,7 @@ import { Modal } from '../components/ui/Modal';
 
 interface HealthCenterViewProps {
   puppy: PuppyProfile;
+  onUpdatePuppy?: (updated: PuppyProfile) => void;
 }
 
 const generateGoogleCalendarUrl = (apt: VetAppointment) => {
@@ -53,7 +55,7 @@ const generateGoogleCalendarUrl = (apt: VetAppointment) => {
   return url.toString();
 };
 
-export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy }) => {
+export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy, onUpdatePuppy }) => {
   const [activeTab, setActiveTab] = useState<'vaccines' | 'meds' | 'appointments' | 'weight'>('vaccines');
   const [vaccinations, setVaccinations] = useState<VaccinationRecord[]>(storage.getVaccinations());
   const [medications, setMedications] = useState<MedicationRecord[]>(storage.getMedications());
@@ -67,12 +69,58 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy }) => 
     });
   }, []);
 
-
   // Modals
+  const [isEditVetOpen, setIsEditVetOpen] = useState(false);
+  const [isEditInsuranceOpen, setIsEditInsuranceOpen] = useState(false);
   const [isAddVacOpen, setIsAddVacOpen] = useState(false);
   const [isAddMedOpen, setIsAddMedOpen] = useState(false);
   const [isAddAptOpen, setIsAddAptOpen] = useState(false);
   const [isAddWeightOpen, setIsAddWeightOpen] = useState(false);
+
+  // Vet Edit Form
+  const [vetClinicInput, setVetClinicInput] = useState(puppy.vetClinic || '');
+  const [vetNameInput, setVetNameInput] = useState(puppy.vetName || '');
+  const [vetPhoneInput, setVetPhoneInput] = useState(puppy.vetPhone || '');
+
+  // Insurance Edit Form
+  const [insuranceProviderInput, setInsuranceProviderInput] = useState(puppy.insuranceProvider || '');
+  const [insurancePolicyInput, setInsurancePolicyInput] = useState(puppy.insurancePolicyNumber || '');
+  const [microchipInput, setMicrochipInput] = useState(puppy.microchipNumber || '');
+
+  React.useEffect(() => {
+    setVetClinicInput(puppy.vetClinic || '');
+    setVetNameInput(puppy.vetName || '');
+    setVetPhoneInput(puppy.vetPhone || '');
+    setInsuranceProviderInput(puppy.insuranceProvider || '');
+    setInsurancePolicyInput(puppy.insurancePolicyNumber || '');
+    setMicrochipInput(puppy.microchipNumber || '');
+  }, [puppy]);
+
+  const handleSaveVet = (e: React.FormEvent) => {
+    e.preventDefault();
+    const updatedPuppy: PuppyProfile = {
+      ...puppy,
+      vetClinic: vetClinicInput.trim() || undefined,
+      vetName: vetNameInput.trim() || undefined,
+      vetPhone: vetPhoneInput.trim() || undefined,
+    };
+    storage.savePuppy(updatedPuppy);
+    if (onUpdatePuppy) onUpdatePuppy(updatedPuppy);
+    setIsEditVetOpen(false);
+  };
+
+  const handleSaveInsurance = (e: React.FormEvent) => {
+    e.preventDefault();
+    const updatedPuppy: PuppyProfile = {
+      ...puppy,
+      insuranceProvider: insuranceProviderInput.trim() || undefined,
+      insurancePolicyNumber: insurancePolicyInput.trim() || undefined,
+      microchipNumber: microchipInput.trim() || undefined,
+    };
+    storage.savePuppy(updatedPuppy);
+    if (onUpdatePuppy) onUpdatePuppy(updatedPuppy);
+    setIsEditInsuranceOpen(false);
+  };
 
   // Vac Form
   const [vacName, setVacName] = useState('');
@@ -199,11 +247,20 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy }) => 
 
       {/* Primary Vet & Insurance Quick Card */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-        <div className="p-4 rounded-2xl bg-[#FFF9F2] border border-[#E8DDD3] flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#766A63]">
-              Primary Veterinarian
-            </span>
+        <div 
+          onClick={() => setIsEditVetOpen(true)}
+          className="p-4 rounded-2xl bg-[#FFF9F2] border border-[#E8DDD3] flex items-center justify-between cursor-pointer hover:border-[#8B5E3C]/60 hover:shadow-xs transition-all group"
+        >
+          <div className="flex-1 pr-2">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#766A63]">
+                Primary Veterinarian
+              </span>
+              <span className="text-[11px] font-bold text-[#8B5E3C] flex items-center gap-1 group-hover:underline">
+                <Edit3 className="w-3 h-3" />
+                {puppy.vetClinic || puppy.vetName ? 'Edit' : 'Add'}
+              </span>
+            </div>
             <h3 className="text-sm font-bold text-[#2C211B] mt-0.5">
               {puppy.vetClinic || puppy.vetName ? (puppy.vetName || puppy.vetClinic) : 'No clinic added'}
             </h3>
@@ -214,16 +271,25 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy }) => 
               <Phone className="w-3 h-3" /> {puppy.vetPhone || 'No phone recorded'}
             </p>
           </div>
-          <div className="p-2.5 rounded-xl bg-white border border-[#E8DDD3] text-[#8B5E3C]">
+          <div className="p-2.5 rounded-xl bg-white border border-[#E8DDD3] text-[#8B5E3C] group-hover:scale-105 transition-transform shrink-0">
             <Activity className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-[#FFF9F2] border border-[#E8DDD3] flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#766A63]">
-              Pet Insurance & Microchip
-            </span>
+        <div 
+          onClick={() => setIsEditInsuranceOpen(true)}
+          className="p-4 rounded-2xl bg-[#FFF9F2] border border-[#E8DDD3] flex items-center justify-between cursor-pointer hover:border-[#8B5E3C]/60 hover:shadow-xs transition-all group"
+        >
+          <div className="flex-1 pr-2">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#766A63]">
+                Pet Insurance & Microchip
+              </span>
+              <span className="text-[11px] font-bold text-[#8B5E3C] flex items-center gap-1 group-hover:underline">
+                <Edit3 className="w-3 h-3" />
+                {puppy.insuranceProvider || puppy.microchipNumber ? 'Edit' : 'Add'}
+              </span>
+            </div>
             <h3 className="text-sm font-bold text-[#2C211B] mt-0.5">
               {puppy.insuranceProvider || 'No insurance recorded'}
             </h3>
@@ -234,7 +300,7 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy }) => 
               Microchip: {puppy.microchipNumber || 'Not recorded'}
             </p>
           </div>
-          <div className="p-2.5 rounded-xl bg-white border border-[#E8DDD3] text-[#8B5E3C]">
+          <div className="p-2.5 rounded-xl bg-white border border-[#E8DDD3] text-[#8B5E3C] group-hover:scale-105 transition-transform shrink-0">
             <ShieldCheck className="w-5 h-5" />
           </div>
         </div>
@@ -652,6 +718,109 @@ export const HealthCenterView: React.FC<HealthCenterViewProps> = ({ puppy }) => 
           <div className="flex gap-2 pt-2">
             <Button type="button" variant="outline" onClick={() => setIsAddWeightOpen(false)} className="flex-1">Cancel</Button>
             <Button type="submit" variant="primary" className="flex-1">Update Weight</Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Edit Primary Vet Modal */}
+      <Modal isOpen={isEditVetOpen} onClose={() => setIsEditVetOpen(false)} title="Primary Veterinarian">
+        <form onSubmit={handleSaveVet} className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+              Clinic or Hospital Name
+            </label>
+            <input
+              type="text"
+              value={vetClinicInput}
+              onChange={(e) => setVetClinicInput(e.target.value)}
+              placeholder="e.g. City Paws Animal Hospital"
+              className="w-full px-3 py-2 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] text-sm text-[#2C211B] focus:outline-none focus:border-[#8B5E3C]"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+              Primary Veterinarian (Doctor Name)
+            </label>
+            <input
+              type="text"
+              value={vetNameInput}
+              onChange={(e) => setVetNameInput(e.target.value)}
+              placeholder="e.g. Dr. Sarah Vance, DVM"
+              className="w-full px-3 py-2 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] text-sm text-[#2C211B] focus:outline-none focus:border-[#8B5E3C]"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+              Clinic Phone Number
+            </label>
+            <input
+              type="tel"
+              value={vetPhoneInput}
+              onChange={(e) => setVetPhoneInput(e.target.value)}
+              placeholder="e.g. (555) 234-5678"
+              className="w-full px-3 py-2 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] text-sm text-[#2C211B] focus:outline-none focus:border-[#8B5E3C]"
+            />
+          </div>
+          <div className="flex gap-2 pt-2">
+            <Button type="button" variant="outline" onClick={() => setIsEditVetOpen(false)} className="flex-1">
+              Cancel
+            </Button>
+            <Button type="submit" variant="primary" className="flex-1">
+              Save Veterinarian
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Edit Pet Insurance & Microchip Modal */}
+      <Modal isOpen={isEditInsuranceOpen} onClose={() => setIsEditInsuranceOpen(false)} title="Pet Insurance & Microchip">
+        <form onSubmit={handleSaveInsurance} className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+              Pet Insurance Provider
+            </label>
+            <input
+              type="text"
+              value={insuranceProviderInput}
+              onChange={(e) => setInsuranceProviderInput(e.target.value)}
+              placeholder="e.g. Trupanion, Lemonade, Healthy Paws"
+              className="w-full px-3 py-2 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] text-sm text-[#2C211B] focus:outline-none focus:border-[#8B5E3C]"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+              Policy Number
+            </label>
+            <input
+              type="text"
+              value={insurancePolicyInput}
+              onChange={(e) => setInsurancePolicyInput(e.target.value)}
+              placeholder="e.g. POL-984210"
+              className="w-full px-3 py-2 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] text-sm text-[#2C211B] focus:outline-none focus:border-[#8B5E3C]"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-[#2C211B] uppercase tracking-wider mb-1">
+              Microchip ID / Number
+            </label>
+            <input
+              type="text"
+              value={microchipInput}
+              onChange={(e) => setMicrochipInput(e.target.value)}
+              placeholder="e.g. 985141002345678"
+              className="w-full px-3 py-2 rounded-xl border border-[#E8DDD3] bg-[#FFF9F2] text-sm text-[#2C211B] focus:outline-none focus:border-[#8B5E3C]"
+            />
+            <p className="text-[11px] text-[#766A63] mt-1">
+              Usually a 9, 10, or 15-digit number registered with HomeAgain, AKC Reunite, or 24Petwatch.
+            </p>
+          </div>
+          <div className="flex gap-2 pt-2">
+            <Button type="button" variant="outline" onClick={() => setIsEditInsuranceOpen(false)} className="flex-1">
+              Cancel
+            </Button>
+            <Button type="submit" variant="primary" className="flex-1">
+              Save Insurance & Microchip
+            </Button>
           </div>
         </form>
       </Modal>

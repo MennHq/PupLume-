@@ -491,7 +491,13 @@ export default function App() {
       )}
 
       {currentView === 'health' && (
-        <HealthCenterView puppy={activePuppy} />
+        <HealthCenterView 
+          puppy={activePuppy} 
+          onUpdatePuppy={(updated) => {
+            setPuppy(updated);
+            showToast(`${updated.name}'s veterinary records updated!`);
+          }}
+        />
       )}
 
       {currentView === 'expenses' && (
