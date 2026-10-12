@@ -361,9 +361,17 @@ birthDate: puppy.birthDate,
             </div>
 
             {msg.sender === 'user' && (
-              <div className="w-8 h-8 rounded-xl bg-[#5F3E29] text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
-                <User className="w-4 h-4" />
-              </div>
+              user?.imageUrl ? (
+                <img
+                  src={user.imageUrl}
+                  alt={user.fullName || 'User'}
+                  className="w-8 h-8 rounded-xl object-cover border border-[#E8DDD3] shadow-xs shrink-0"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-xl bg-[#5F3E29] text-white flex items-center justify-center text-xs font-bold shrink-0">
+                  {user?.firstName ? user.firstName.charAt(0).toUpperCase() : <User className="w-4 h-4" />}
+                </div>
+              )
             )}
           </div>
         ))}
