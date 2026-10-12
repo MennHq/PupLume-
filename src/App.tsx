@@ -30,6 +30,7 @@ import { OfflineAlert } from './components/pwa/OfflineAlert';
 import { ProPaywallModal } from './components/ui/ProPaywallModal';
 import { PaddlePaywall } from './components/ui/PaddlePaywall';
 import { engine as notificationEngine } from './lib/NotificationEngine';
+import posthog from 'posthog-js';
 
 // Create a small component for the animated marketing text
 import { motion, AnimatePresence } from 'framer-motion';
@@ -155,17 +156,34 @@ export default function App() {
     storage.setAuthenticatedUser(user?.id ?? null);
   }, [user?.id]);
 
-  // Sync user profile to Convex upon signing in
+  // Sync user profile to Convex upon signing in & identify in PostHog
   useEffect(() => {
     if (isSignedIn && user?.id) {
+      posthog.identify(user.id, {
+        email: user.primaryEmailAddress?.emailAddress,
+        name: user.fullName || user.firstName || 'Pup Parent',
+        firstName: user.firstName,
+        lastName: user.lastName,
+      });
+
       syncUserMutation({
         clerkId: user.id,
         email: user.primaryEmailAddress?.emailAddress,
         name: user.fullName || user.firstName || 'Pup Parent',
         avatarUrl: user.imageUrl,
       }).catch((err) => console.debug('[App] syncUser error:', err));
+    } else if (!isSignedIn && isLoaded) {
+      posthog.reset();
     }
-  }, [isSignedIn, user?.id, syncUserMutation]);
+  }, [isSignedIn, isLoaded, user, syncUserMutation]);
+
+  // Track view changes with PostHog
+  useEffect(() => {
+    posthog.capture('$pageview', {
+      view: currentView,
+      path: window.location.pathname,
+    });
+  }, [currentView]);
 
   // Reactive listener to storage changes
   useEffect(() => {

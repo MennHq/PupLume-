@@ -1,4 +1,5 @@
 import { query, mutation } from './_generated/server';
+import { v } from "convex/values";
 
 export const wipeAllData = mutation({
   args: {},
@@ -25,5 +26,16 @@ export const getWebhookLogs = query({
   args: {},
   handler: async (ctx) => {
     return await ctx.db.query('webhookLogs').order('desc').take(5);
+  }
+});
+
+export const logWebhook = mutation({
+  args: { action: v.string(), payload: v.any() },
+  handler: async (ctx, args) => {
+    await ctx.db.insert("webhookLogs", {
+      action: args.action,
+      payload: args.payload,
+      timestamp: Date.now()
+    });
   }
 });
