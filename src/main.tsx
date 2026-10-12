@@ -6,7 +6,7 @@ import './index.css';
 import posthog from 'posthog-js';
 
 // Initialize PostHog
-posthog.init(import.meta.env.VITE_POSTHOG_KEY || 'phc_placeholder', {
+posthog.init(import.meta.env.VITE_POSTHOG_KEY || 'phc_ph5K7sEtEe7ma5owE6AdhcKR4TdBwqSjM94ddi6Pcrhx', {
   api_host: import.meta.env.VITE_POSTHOG_HOST || 'https://us.i.posthog.com',
   person_profiles: 'identified_only',
   capture_pageview: false, // We manually track page views per route
