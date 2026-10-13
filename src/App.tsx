@@ -31,6 +31,7 @@ import { ProPaywallModal } from './components/ui/ProPaywallModal';
 import { PaddlePaywall } from './components/ui/PaddlePaywall';
 import { FirstTimeWelcomeTour } from './components/ui/FirstTimeWelcomeTour';
 import { GettingStartedChecklist } from './components/onboarding/GettingStartedChecklist';
+import { OnboardingGuideTip } from './components/onboarding/OnboardingGuideTip';
 import { engine as notificationEngine } from './lib/NotificationEngine';
 import posthog from 'posthog-js';
 
@@ -428,6 +429,9 @@ export default function App() {
 
       {/* Getting Started Onboarding Checklist Widget */}
       <GettingStartedChecklist puppy={activePuppy} onNavigate={setCurrentView} />
+
+      {/* Floating Onboarding Guide Tip Spotlight */}
+      <OnboardingGuideTip />
 
       {/* Main View Router */}
       {currentView === 'home' && (

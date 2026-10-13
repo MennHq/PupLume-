@@ -82,6 +82,8 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({ puppy, onActio
     const updated = [...messages, userMsg];
     setMessages(updated);
     storage.saveAIMessages(updated);
+    localStorage.setItem('puplume_asked_ai', 'true');
+    window.dispatchEvent(new CustomEvent('puplume-action-completed', { detail: { action: 'ai' } }));
     setIsLoading(true);
 
     try {

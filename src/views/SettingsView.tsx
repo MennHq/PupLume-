@@ -444,17 +444,23 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
             Replay Welcome Tour
           </Button>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              window.dispatchEvent(new CustomEvent('reopen-getting-started'));
-              showStatus('Getting Started checklist reopened!');
-            }}
-            leftIcon={<Dog className="w-3.5 h-3.5 text-[#8B5E3C]" />}
-          >
-            Getting Started Checklist
-          </Button>
+          {localStorage.getItem(`puplume_checklist_finished_forever_${puppy.id}`) === 'true' ? (
+            <span className="px-3 py-2 rounded-xl border border-emerald-200 bg-emerald-50 text-xs font-bold text-emerald-800 flex items-center gap-1.5">
+              <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[3]" /> Onboarding 100% Complete
+            </span>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent('reopen-getting-started'));
+                showStatus('Getting Started checklist reopened!');
+              }}
+              leftIcon={<Dog className="w-3.5 h-3.5 text-[#8B5E3C]" />}
+            >
+              Getting Started Checklist
+            </Button>
+          )}
 
           <label className="cursor-pointer">
             <input

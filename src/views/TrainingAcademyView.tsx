@@ -109,6 +109,8 @@ export const TrainingAcademyView: React.FC<TrainingAcademyViewProps> = ({
     if (!activeLesson) return;
     const isNowMastered = !activeLesson.mastered;
     const updated = storage.updateLessonStatus(lessonId, true, isNowMastered);
+    localStorage.setItem('puplume_did_academy', 'true');
+    window.dispatchEvent(new CustomEvent('puplume-action-completed', { detail: { action: 'academy' } }));
     setLessons([...updated]);
     setActiveLesson({ ...activeLesson, completed: true, mastered: isNowMastered });
   };
@@ -116,6 +118,8 @@ export const TrainingAcademyView: React.FC<TrainingAcademyViewProps> = ({
   const handleMarkPracticed = (lessonId: string) => {
     if (!activeLesson) return;
     const updated = storage.updateLessonStatus(lessonId, true, activeLesson.mastered);
+    localStorage.setItem('puplume_did_academy', 'true');
+    window.dispatchEvent(new CustomEvent('puplume-action-completed', { detail: { action: 'academy' } }));
     setLessons([...updated]);
     setActiveLesson({ ...activeLesson, completed: true });
   };

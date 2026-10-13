@@ -3,7 +3,6 @@ import {
   Check, 
   RotateCcw, 
   X, 
-  ArrowRight, 
   Sparkles, 
   Dog, 
   CheckCircle2, 
@@ -30,130 +29,130 @@ interface ChecklistItem {
 
 export const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = ({ puppy, onNavigate }) => {
   const { user } = useUser();
-  const userName = user?.firstName || user?.fullName || 'Guest';
+  const userName = user?.firstName || user?.fullName || 'Pup Parent';
+
+  const permanentKey = `puplume_checklist_finished_forever_${puppy.id}`;
+  const dismissedKey = `puplume_checklist_dismissed_${puppy.id}`;
+  const minimizedKey = `puplume_checklist_minimized_${puppy.id}`;
+
+  // If 100% was ever achieved, NEVER EVER show this box again
+  const [isPermanentlyFinished, setIsPermanentlyFinished] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem(permanentKey) === 'true';
+  });
 
   const [isDismissed, setIsDismissed] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
-    return localStorage.getItem(`puplume_checklist_dismissed_${puppy.id}`) === 'true';
+    return localStorage.getItem(dismissedKey) === 'true';
   });
 
   const [isMinimized, setIsMinimized] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
-    return localStorage.getItem(`puplume_checklist_minimized_${puppy.id}`) === 'true';
+    return localStorage.getItem(minimizedKey) === 'true';
   });
 
-  // Manual check overrides stored in localStorage
-  const [manualChecks, setManualChecks] = useState<Record<string, boolean>>(() => {
-    if (typeof window === 'undefined') return {};
-    try {
-      const raw = localStorage.getItem(`puplume_checklist_state_${puppy.id}`);
-      return raw ? JSON.parse(raw) : {};
-    } catch {
-      return {};
-    }
-  });
+  const [celebrationCountdown, setCelebrationCountdown] = useState<number | null>(null);
 
-  // Listen to storage changes to auto-detect completion
+  // Reactive state for automatic detection only (no manual ticking allowed)
   const [tasks, setTasks] = useState(() => storage.getTasks());
   const [pottyLogs, setPottyLogs] = useState(() => storage.getPottyLogs());
   const [lessons, setLessons] = useState(() => storage.getTrainingLessons());
+  const [hasAskedAI, setHasAskedAI] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('puplume_asked_ai') === 'true' || storage.getAIMessages().some(m => m.sender === 'user');
+  });
 
   useEffect(() => {
-    return storage.subscribe(() => {
+    const unsub = storage.subscribe(() => {
       setTasks([...storage.getTasks()]);
       setPottyLogs([...storage.getPottyLogs()]);
       setLessons([...storage.getTrainingLessons()]);
+      if (localStorage.getItem('puplume_asked_ai') === 'true' || storage.getAIMessages().some(m => m.sender === 'user')) {
+        setHasAskedAI(true);
+      }
     });
-  }, []);
 
-  useEffect(() => {
-    const handleReopen = () => {
-      setIsDismissed(false);
-      setIsMinimized(false);
-      localStorage.removeItem(`puplume_checklist_dismissed_${puppy.id}`);
-      localStorage.removeItem(`puplume_checklist_minimized_${puppy.id}`);
+    const handleActionDone = (e: any) => {
+      if (e.detail?.action === 'ai') setHasAskedAI(true);
     };
-    window.addEventListener('reopen-getting-started', handleReopen);
-    return () => window.removeEventListener('reopen-getting-started', handleReopen);
-  }, [puppy.id]);
 
-  const saveManualChecks = (newChecks: Record<string, boolean>) => {
-    setManualChecks(newChecks);
-    localStorage.setItem(`puplume_checklist_state_${puppy.id}`, JSON.stringify(newChecks));
-  };
-
-  const toggleCheck = (id: string, currentState: boolean) => {
-    saveManualChecks({
-      ...manualChecks,
-      [id]: !currentState,
-    });
-  };
-
-  const handleReset = () => {
-    setManualChecks({});
-    localStorage.removeItem(`puplume_checklist_state_${puppy.id}`);
-    localStorage.removeItem(`puplume_checklist_dismissed_${puppy.id}`);
-    setIsDismissed(false);
-    setIsMinimized(false);
-  };
+    window.addEventListener('puplume-action-completed', handleActionDone);
+    return () => {
+      unsub();
+      window.removeEventListener('puplume-action-completed', handleActionDone);
+    };
+  }, []);
 
   const handleDismiss = () => {
     setIsDismissed(true);
-    localStorage.setItem(`puplume_checklist_dismissed_${puppy.id}`, 'true');
+    localStorage.setItem(dismissedKey, 'true');
   };
 
   const handleToggleMinimize = () => {
     const next = !isMinimized;
     setIsMinimized(next);
-    localStorage.setItem(`puplume_checklist_minimized_${puppy.id}`, String(next));
+    localStorage.setItem(minimizedKey, String(next));
   };
 
-  // 5 Essential Onboarding Tasks
+  // Dispatch guided tip banner to direct user where to click on target page
+  const guideUserTo = (view: string, message: string) => {
+    onNavigate(view);
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('show-onboarding-guide', { detail: { message } }));
+    }, 150);
+  };
+
+  // Automatic Detection Only
+  const isProfileDone = Boolean(
+    puppy.name && 
+    puppy.name !== 'Max' && 
+    (puppy.photoUrl || (puppy.breed && puppy.weightLbs > 0))
+  );
+  const isTaskDone = tasks.some((t) => t.completed);
+  const isPottyDone = pottyLogs.length > 0;
+  const isAIDone = hasAskedAI;
+  const isAcademyDone = lessons.some((l) => l.completed || l.mastered || Boolean(l.lastPracticed)) || localStorage.getItem('puplume_did_academy') === 'true';
+
   const checklistItems: ChecklistItem[] = [
     {
       id: 'profile',
       title: `Personalize ${puppy.name}'s Profile`,
       description: 'Upload a cute photo, verify breed and birthdate.',
       actionText: 'Do it',
-      isCompleted: Boolean(manualChecks['profile'] ?? (puppy.photoUrl && puppy.breed && puppy.birthDate)),
-      onAction: () => onNavigate('puppy'),
+      isCompleted: isProfileDone,
+      onAction: () => guideUserTo('puppy', `Tap the camera icon or 'Edit Profile' to upload a photo for ${puppy.name}!`),
     },
     {
       id: 'task',
       title: 'Complete a Daily Task',
-      description: 'Double-tap a morning routine task to check it off.',
+      description: 'Check off a routine task to establish daily rhythm.',
       actionText: 'Do it',
-      isCompleted: Boolean(manualChecks['task'] ?? tasks.some((t) => t.completed)),
-      onAction: () => onNavigate('tasks'),
+      isCompleted: isTaskDone,
+      onAction: () => guideUserTo('tasks', 'Tap the circular checkmark on any task card to mark it complete!'),
     },
     {
       id: 'potty',
       title: 'Log a Potty Break',
       description: 'Record an outdoor pee or poop to start predictions.',
       actionText: 'Do it',
-      isCompleted: Boolean(manualChecks['potty'] ?? (pottyLogs.length > 0)),
-      onAction: () => {
-        onNavigate('potty');
-      },
+      isCompleted: isPottyDone,
+      onAction: () => guideUserTo('potty', "Tap '+ Quick Log Potty' or choose Pee/Poop below to log your break!"),
     },
     {
       id: 'ai',
       title: 'Ask AI Your First Question',
       description: 'Get tailored advice on teething, biting, or naps.',
       actionText: 'Do it',
-      isCompleted: Boolean(manualChecks['ai'] ?? (localStorage.getItem('puplume_asked_ai') === 'true')),
-      onAction: () => {
-        localStorage.setItem('puplume_asked_ai', 'true');
-        onNavigate('ai');
-      },
+      isCompleted: isAIDone,
+      onAction: () => guideUserTo('ai', `Type a question below (e.g. 'How to stop ${puppy.name} from biting?') and send!`),
     },
     {
       id: 'academy',
       title: 'Try a 5-Min Training Drill',
       description: 'Run a short recall or crate settling drill with timer.',
       actionText: 'Do it',
-      isCompleted: Boolean(manualChecks['academy'] ?? lessons.some((l) => l.completed || l.lastPracticed)),
-      onAction: () => onNavigate('academy'),
+      isCompleted: isAcademyDone,
+      onAction: () => guideUserTo('academy', "Choose any lesson and tap 'Start Drill' to practice with the timer!"),
     },
   ];
 
@@ -161,15 +160,35 @@ export const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = (
   const totalCount = checklistItems.length;
   const percentCompleted = Math.round((completedCount / totalCount) * 100);
 
-  const getEncouragement = () => {
-    if (percentCompleted === 100) return 'Superstar! 🎉';
-    if (percentCompleted >= 80) return 'Almost there!';
-    if (percentCompleted >= 40) return 'Keep it up!';
-    if (percentCompleted > 0) return 'Great start!';
-    return "Let's go!";
-  };
+  // Permanently close once 100% is reached
+  useEffect(() => {
+    if (percentCompleted === 100 && !isPermanentlyFinished) {
+      localStorage.setItem(permanentKey, 'true');
+      localStorage.setItem(dismissedKey, 'true');
+      storage.saveSettings({
+        ...storage.getSettings(),
+        hasCompletedOnboarding: true,
+      });
 
-  if (isDismissed) return null;
+      // Start 3 second closing animation
+      setCelebrationCountdown(3);
+      const interval = setInterval(() => {
+        setCelebrationCountdown((prev) => {
+          if (prev !== null && prev <= 1) {
+            clearInterval(interval);
+            setIsPermanentlyFinished(true);
+            return null;
+          }
+          return prev !== null ? prev - 1 : null;
+        });
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [percentCompleted, isPermanentlyFinished, permanentKey, dismissedKey]);
+
+  // NEVER show if permanently finished or dismissed
+  if (isPermanentlyFinished || isDismissed) return null;
 
   // Minimized Floating Pill Mode
   if (isMinimized) {
@@ -204,7 +223,7 @@ export const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = (
 
   return (
     <div className="fixed bottom-20 md:bottom-6 right-4 sm:right-6 z-40 w-[calc(100vw-2rem)] sm:w-[360px] max-w-sm animate-in fade-in zoom-in-95 duration-200">
-      <div className="bg-white rounded-3xl border border-[#E8DDD3] shadow-[0_12px_40px_rgba(0,0,0,0.14)] p-5 overflow-hidden relative">
+      <div className="bg-white rounded-3xl border border-[#E8DDD3] shadow-[0_12px_40px_rgba(0,0,0,0.16)] p-5 overflow-hidden relative">
         
         {/* Header Bar */}
         <div className="flex items-center justify-between pb-3 border-b border-[#E8DDD3]/70">
@@ -213,13 +232,6 @@ export const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = (
           </span>
 
           <div className="flex items-center gap-1 text-[#766A63]">
-            <button
-              onClick={handleReset}
-              className="p-1.5 hover:text-[#2C211B] hover:bg-[#FFF9F2] rounded-lg transition-colors cursor-pointer"
-              title="Reset Checklist"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-            </button>
             <button
               onClick={handleToggleMinimize}
               className="p-1.5 hover:text-[#2C211B] hover:bg-[#FFF9F2] rounded-lg transition-colors cursor-pointer"
@@ -258,40 +270,37 @@ export const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = (
 
           <div className="flex items-center justify-between text-xs font-bold">
             <span className="text-[#2C211B]">{percentCompleted}% Completed</span>
-            <span className="text-[#8B5E3C]">{getEncouragement()}</span>
+            <span className="text-[#8B5E3C]">
+              {percentCompleted === 100 ? 'Superstar! 🎉' : percentCompleted >= 60 ? 'Almost there!' : 'Keep it up!'}
+            </span>
           </div>
         </div>
 
-        {/* Checklist Items */}
+        {/* Checklist Items (Strictly Automatic - Read Only Checkmarks) */}
         <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1">
           {checklistItems.map((item) => (
             <div
               key={item.id}
               className={`p-2.5 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
                 item.isCompleted
-                  ? 'bg-[#FFF9F2]/60 border-[#E8DDD3]/80 opacity-80'
+                  ? 'bg-[#FFF9F2]/70 border-[#E8DDD3]/80 opacity-80'
                   : 'bg-white border-[#E8DDD3] hover:border-[#8B5E3C]/40 shadow-2xs'
               }`}
             >
-              <div 
-                className="flex items-start gap-2.5 min-w-0 cursor-pointer flex-1"
-                onClick={() => toggleCheck(item.id, item.isCompleted)}
-              >
-                {/* Checkbox Icon */}
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleCheck(item.id, item.isCompleted);
-                  }}
-                  className={`w-5 h-5 rounded-full flex items-center justify-center transition-all cursor-pointer shrink-0 mt-0.5 ${
+              <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                {/* Automatic Read-Only Status Indicator */}
+                <div
+                  className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
                     item.isCompleted
                       ? 'bg-[#8B5E3C] text-white shadow-xs'
-                      : 'border-2 border-[#E8DDD3] hover:border-[#8B5E3C] bg-white'
+                      : 'border-2 border-[#E8DDD3] bg-white text-transparent'
                   }`}
+                  title={item.isCompleted ? 'Completed automatically' : 'Complete this action in the app'}
                 >
-                  {item.isCompleted && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-                </button>
+                  {item.isCompleted ? (
+                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                  ) : null}
+                </div>
 
                 {/* Text */}
                 <div className="min-w-0 flex-1">
@@ -310,8 +319,8 @@ export const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = (
                 </div>
               </div>
 
-              {/* Action Button */}
-              {!item.isCompleted && (
+              {/* Action Button - Guides the user to target page with spotlight tip */}
+              {!item.isCompleted ? (
                 <button
                   type="button"
                   onClick={item.onAction}
@@ -319,17 +328,24 @@ export const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = (
                 >
                   {item.actionText}
                 </button>
+              ) : (
+                <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                  Done
+                </span>
               )}
             </div>
           ))}
         </div>
 
-        {/* 100% Completion Celebration Banner */}
+        {/* 100% Completion Celebration Banner & Auto-Exit */}
         {percentCompleted === 100 && (
-          <div className="mt-3.5 p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-center animate-in zoom-in-95 duration-200">
-            <span className="text-xs font-bold text-emerald-800 flex items-center justify-center gap-1.5">
-              🎉 All steps complete! You&apos;re an official PupLume Master!
+          <div className="mt-3.5 p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-center animate-in zoom-in-95 duration-200">
+            <span className="text-xs font-extrabold text-emerald-800 flex items-center justify-center gap-1.5 mb-1">
+              🎉 100% Completed! You&apos;re an official PupLume Superstar!
             </span>
+            <p className="text-[11px] text-emerald-700 font-medium">
+              Closing forever in {celebrationCountdown || 3}s...
+            </p>
           </div>
         )}
 
