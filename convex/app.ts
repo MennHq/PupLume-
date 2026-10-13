@@ -35,7 +35,7 @@ export const getUserAppData = query({
       ctx.db.query('notifications').withIndex('by_user', q => q.eq('userId', userId)).collect(),
       ctx.db.query('familyMembers').withIndex('by_user', q => q.eq('userId', userId)).collect(),
       ctx.db.query('memories').withIndex('by_user', q => q.eq('userId', userId)).collect(),
-      ctx.db.query('settings').withIndex('by_user', q => q.eq('userId', userId)).first(),
+      ctx.db.query('userSettings').withIndex('by_user', q => q.eq('userId', userId)).first(),
     ]);
 
     return {
