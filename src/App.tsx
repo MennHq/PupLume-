@@ -29,6 +29,7 @@ import { clearUserDataInConvex } from './lib/convex';
 import { OfflineAlert } from './components/pwa/OfflineAlert';
 import { ProPaywallModal } from './components/ui/ProPaywallModal';
 import { PaddlePaywall } from './components/ui/PaddlePaywall';
+import { FirstTimeWelcomeTour } from './components/ui/FirstTimeWelcomeTour';
 import { engine as notificationEngine } from './lib/NotificationEngine';
 import posthog from 'posthog-js';
 
@@ -420,6 +421,9 @@ export default function App() {
           🐾 {toastMessage}
         </div>
       )}
+
+      {/* First-time Interactive Welcome Tour (Shows once, 5 steps) */}
+      <FirstTimeWelcomeTour puppy={activePuppy} />
 
       {/* Main View Router */}
       {currentView === 'home' && (

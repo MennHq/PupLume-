@@ -432,6 +432,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
             Download JSON Backup
           </Button>
 
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent('replay-welcome-tour'));
+              showStatus('Welcome tour reopened!');
+            }}
+            leftIcon={<Sparkles className="w-3.5 h-3.5 text-[#8B5E3C]" />}
+          >
+            Replay Welcome Tour
+          </Button>
+
           <label className="cursor-pointer">
             <input
               type="file"
