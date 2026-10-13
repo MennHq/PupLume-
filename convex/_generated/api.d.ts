@@ -31,7 +31,6 @@ import type * as tasks from "../tasks.js";
 import type * as training from "../training.js";
 import type * as users from "../users.js";
 import type * as walk from "../walk.js";
-import type * as whop from "../whop.js";
 
 import type {
   ApiFromModules,
@@ -63,7 +62,6 @@ declare const fullApi: ApiFromModules<{
   training: typeof training;
   users: typeof users;
   walk: typeof walk;
-  whop: typeof whop;
 }>;
 
 /**

@@ -8,7 +8,7 @@ export const listPottyLogs = query({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject || args.userId;
     if (!userId) return [];
 
     return await ctx.db
@@ -30,7 +30,7 @@ export const addPottyLog = mutation({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject || args.userId;
     if (!userId) throw new Error("Authentication or userId required");
 
     const { userId: _, ...data } = args;
@@ -49,7 +49,7 @@ export const deletePottyLog = mutation({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject || args.userId;
 
     const log = await ctx.db.get(args.id);
     if (!log || (userId && log.userId !== userId)) {

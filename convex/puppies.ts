@@ -5,7 +5,7 @@ export const getPuppies = query({
   args: { userId: v.optional(v.string()) },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject || args.userId;
     if (!userId) {
       return [];
     }
@@ -24,7 +24,7 @@ export const getPuppy = query({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject || args.userId;
     if (!userId) return null;
 
     if (args.id) {
@@ -62,7 +62,7 @@ export const createPuppy = mutation({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject || args.userId;
     if (!userId) {
       throw new Error("Authentication or userId required to create puppy");
     }
@@ -99,7 +99,7 @@ export const updatePuppy = mutation({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject || args.userId;
 
     const { id, userId: _, ...updates } = args;
     const existing = await ctx.db.get(id);
@@ -137,7 +137,7 @@ export const savePuppy = mutation({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject || args.userId;
     if (!userId) {
       throw new Error("Authentication or userId required to save puppy");
     }
@@ -200,7 +200,7 @@ export const deletePuppy = mutation({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject || args.userId;
 
     const existing = await ctx.db.get(args.id);
     if (!existing || (userId && existing.userId !== userId)) {

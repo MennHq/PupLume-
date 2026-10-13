@@ -9,7 +9,7 @@ export const listVaccinations = query({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject || args.userId;
     if (!userId) return [];
 
     return await ctx.db
@@ -36,7 +36,7 @@ export const addVaccination = mutation({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject || args.userId;
     if (!userId) throw new Error("Authentication or userId required");
 
     const { userId: _, ...data } = args;
@@ -58,7 +58,7 @@ export const listMedications = query({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject || args.userId;
     if (!userId) return [];
 
     return await ctx.db
@@ -82,7 +82,7 @@ export const addMedication = mutation({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject || args.userId;
     if (!userId) throw new Error("Authentication or userId required");
 
     const { userId: _, ...data } = args;
@@ -102,7 +102,7 @@ export const listAppointments = query({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject || args.userId;
     if (!userId) return [];
 
     return await ctx.db
@@ -127,7 +127,7 @@ export const addAppointment = mutation({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject || args.userId;
     if (!userId) throw new Error("Authentication or userId required");
 
     const { userId: _, ...data } = args;

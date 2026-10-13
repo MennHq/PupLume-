@@ -8,7 +8,7 @@ export const listGroomingTasks = query({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject || args.userId;
     if (!userId) return [];
 
     return await ctx.db
@@ -34,7 +34,7 @@ export const saveGroomingTasks = mutation({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject || args.userId;
     if (!userId) throw new Error("Authentication or userId required");
 
     // Remove existing grooming tasks for this puppy

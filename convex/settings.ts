@@ -5,7 +5,7 @@ export const getSettings = query({
   args: { userId: v.optional(v.string()) },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject || args.userId;
     if (!userId) return null;
 
     return await ctx.db
@@ -27,7 +27,7 @@ export const saveSettings = mutation({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject || args.userId;
     if (!userId) throw new Error("Authentication or userId required to save settings");
 
     const existing = await ctx.db

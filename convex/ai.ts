@@ -8,10 +8,11 @@ export const saveMemory = mutation({
     fact: v.string(),
     category: v.optional(v.string()),
     puppyId: v.optional(v.string()),
+    userId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject || args.userId;
     if (!userId) throw new Error("Authentication required");
 
     return await ctx.db.insert("memories", {
@@ -25,10 +26,13 @@ export const saveMemory = mutation({
 });
 
 export const deleteMemory = mutation({
-  args: { memoryId: v.id("memories") },
+  args: { 
+    memoryId: v.id("memories"),
+    userId: v.optional(v.string()),
+  },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject || args.userId;
     if (!userId) throw new Error("Authentication required");
 
     const memory = await ctx.db.get(args.memoryId);

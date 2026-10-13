@@ -9,7 +9,7 @@ export const listTasks = query({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject || args.userId;
     if (!userId) return [];
 
     let q = ctx.db
@@ -39,7 +39,7 @@ export const createTask = mutation({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject || args.userId;
     if (!userId) throw new Error("Authentication or userId required to create task");
 
     const { userId: _, ...taskData } = args;
@@ -66,7 +66,7 @@ export const updateTask = mutation({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject || args.userId;
     if (!userId) throw new Error("Authentication required");
 
     const task = await ctx.db.get(args.id);
@@ -88,7 +88,7 @@ export const toggleTask = mutation({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject || args.userId;
 
     let task = null;
     if (args.id) {
@@ -122,7 +122,7 @@ export const skipTask = mutation({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject || args.userId;
 
     let task = null;
     if (args.id) {
@@ -154,7 +154,7 @@ export const deleteTask = mutation({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject || args.userId;
 
     const task = await ctx.db.get(args.id);
     if (!task || (userId && task.userId !== userId)) {
@@ -188,7 +188,7 @@ export const saveTasksBatch = mutation({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject || args.userId;
     if (!userId) throw new Error("Authentication or userId required");
 
     const existing = await ctx.db

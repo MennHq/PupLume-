@@ -8,7 +8,7 @@ export const listBehaviorLogs = query({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject || args.userId;
     if (!userId) return [];
 
     return await ctx.db
@@ -32,7 +32,7 @@ export const addBehaviorLog = mutation({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject || args.userId;
     if (!userId) throw new Error("Authentication or userId required");
 
     const { userId: _, ...data } = args;

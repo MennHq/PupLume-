@@ -8,7 +8,7 @@ export const listJournalEntries = query({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject || args.userId;
     if (!userId) return [];
 
     return await ctx.db
@@ -30,7 +30,7 @@ export const addJournalEntry = mutation({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject || args.userId;
     if (!userId) throw new Error("Authentication or userId required");
 
     const { userId: _, ...data } = args;
@@ -49,7 +49,7 @@ export const deleteJournalEntry = mutation({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject || args.userId;
 
     const entry = await ctx.db.get(args.id);
     if (!entry || (userId && entry.userId !== userId)) {
