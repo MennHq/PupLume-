@@ -46,9 +46,40 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isPuppyDropdownOpen, setIsPuppyDropdownOpen] = useState(false);
+  const puppyDropdownRef = React.useRef<HTMLDivElement>(null);
   const [unreadNotifsCount, setUnreadNotifsCount] = useState(() => 
     storage.getNotifications().filter(n => !n.read).length
   );
+
+  // Close puppy dropdown when clicking outside or pressing Escape
+  React.useEffect(() => {
+    if (!isPuppyDropdownOpen) return;
+
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (
+        puppyDropdownRef.current &&
+        !puppyDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsPuppyDropdownOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsPuppyDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isPuppyDropdownOpen]);
 
   React.useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
@@ -76,6 +107,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
     { id: 'more', label: 'More', icon: <Menu className="w-5 h-5" /> }
   ];
 
+  const allPuppies = storage.getPuppies().length > 0 ? storage.getPuppies() : [puppy];
+
   return (
     <div className="min-h-screen bg-[#FFF9F2] text-[#2C211B] flex flex-col font-sans">
       {/* Offline Status Alert */}
@@ -94,7 +127,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
             <div className="hidden sm:block h-6 w-px bg-[#E8DDD3]" />
 
             {/* Puppy Picker */}
-            <div className="relative">
+            <div className="relative" ref={puppyDropdownRef}>
               <button
                 onClick={() => setIsPuppyDropdownOpen(!isPuppyDropdownOpen)}
                 className="flex items-center gap-2 p-1.5 pr-3 rounded-2xl border border-[#E8DDD3] bg-[#FFF9F2] hover:bg-[#F3E7DA] transition-colors cursor-pointer"
@@ -105,30 +138,48 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                   className="w-7 h-7 rounded-xl object-cover border border-[#8B5E3C]"
                 />
                 <span className="text-xs font-bold text-[#2C211B]">{puppy.name}</span>
-                <ChevronDown className="w-3.5 h-3.5 text-[#766A63]" />
+                <ChevronDown className={`w-3.5 h-3.5 text-[#766A63] transition-transform duration-200 ${isPuppyDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {isPuppyDropdownOpen && (
-                <div className="absolute left-0 mt-2 w-56 bg-white rounded-2xl border border-[#E8DDD3] shadow-lg py-2 z-50">
+                <div className="absolute left-0 mt-2 w-60 bg-white rounded-2xl border border-[#E8DDD3] shadow-[0_10px_38px_rgba(0,0,0,0.12)] py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
                   <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#766A63]">
                     Your Puppies
                   </div>
-                  <div
-                    onClick={() => {
-                      setIsPuppyDropdownOpen(false);
-                      onNavigate('puppy');
-                    }}
-                    className="flex items-center gap-2.5 px-3 py-2 hover:bg-[#FFF9F2] cursor-pointer bg-[#FFF9F2]/60"
-                  >
-                    <img
-                      src={puppy.photoUrl}
-                      alt={puppy.name}
-                      className="w-8 h-8 rounded-xl object-cover border border-[#8B5E3C]"
-                    />
-                    <div className="min-w-0">
-                      <h5 className="text-xs font-bold text-[#2C211B] truncate">{puppy.name}</h5>
-                      <p className="text-[10px] text-[#766A63] truncate">{puppy.breed}</p>
-                    </div>
+                  <div className="max-h-60 overflow-y-auto">
+                    {allPuppies.map((p) => {
+                      const isSelected = p.id === puppy.id;
+                      return (
+                        <div
+                          key={p.id}
+                          onClick={() => {
+                            setIsPuppyDropdownOpen(false);
+                            if (!isSelected) {
+                              storage.setActivePuppyId(p.id);
+                            }
+                            onNavigate('puppy');
+                          }}
+                          className={`flex items-center gap-2.5 px-3 py-2 hover:bg-[#FFF9F2] cursor-pointer transition-colors ${
+                            isSelected ? 'bg-[#FFF9F2]/80 font-bold' : ''
+                          }`}
+                        >
+                          <img
+                            src={p.photoUrl}
+                            alt={p.name}
+                            className={`w-8 h-8 rounded-xl object-cover border ${
+                              isSelected ? 'border-[#8B5E3C]' : 'border-[#E8DDD3]'
+                            }`}
+                          />
+                          <div className="min-w-0 flex-1">
+                            <h5 className="text-xs font-bold text-[#2C211B] truncate">{p.name}</h5>
+                            <p className="text-[10px] text-[#766A63] truncate">{p.breed}</p>
+                          </div>
+                          {isSelected && (
+                            <span className="w-2 h-2 rounded-full bg-[#8B5E3C] shrink-0" />
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
 
                   <div className="border-t border-[#E8DDD3] my-1 pt-1">
@@ -137,7 +188,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                         setIsPuppyDropdownOpen(false);
                         if (onOpenNewPuppyWizard) onOpenNewPuppyWizard();
                       }}
-                      className="w-full text-left px-3 py-2 text-xs font-bold text-[#8B5E3C] hover:bg-[#FFF9F2] flex items-center gap-2 cursor-pointer"
+                      className="w-full text-left px-3 py-2 text-xs font-bold text-[#8B5E3C] hover:bg-[#FFF9F2] flex items-center gap-2 cursor-pointer transition-colors"
                     >
                       <Plus className="w-4 h-4" /> Add Another Puppy
                     </button>
