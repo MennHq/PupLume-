@@ -11,13 +11,15 @@ import {
   Layers,
   ArrowRight,
   MoreHorizontal,
-  Edit2
+  Edit2,
+  Download
 } from 'lucide-react';
 import { PuppyProfile, TaskItem } from '../types';
 import { storage } from '../lib/storage';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { Modal } from '../components/ui/Modal';
+import { exportPuppyScheduleToICS } from '../lib/calendarExport';
 
 interface TasksViewProps {
   puppy: PuppyProfile;
@@ -261,7 +263,17 @@ export const TasksView: React.FC<TasksViewProps> = ({ puppy, onOpenLesson }) => 
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => exportPuppyScheduleToICS(puppy, tasks)}
+            leftIcon={<Download className="w-3.5 h-3.5 text-[#5F3E29]" />}
+            title="Export recurring puppy schedule to Apple Calendar, Google Calendar, or Outlook (.ics)"
+          >
+            Export .ics
+          </Button>
+
           <Button
             variant="outline"
             size="sm"

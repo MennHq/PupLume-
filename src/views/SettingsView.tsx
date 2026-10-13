@@ -20,6 +20,7 @@ import { CloudinaryImageUploader } from '../components/ui/CloudinaryImageUploade
 import { useUser } from '@clerk/react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
+import { engine as notificationEngine } from '../lib/NotificationEngine';
 
 interface SettingsViewProps {
   puppy: PuppyProfile;
@@ -37,6 +38,20 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
   const [isSaved, setIsSaved] = useState(false);
   const [backupStatus, setBackupStatus] = useState<string | null>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+
+  const [pushPermission, setPushPermission] = useState<NotificationPermission>(() => 
+    notificationEngine.getPermissionStatus()
+  );
+
+  const handleRequestPush = async () => {
+    const res = await notificationEngine.requestPermission();
+    setPushPermission(res);
+    if (res === 'granted') {
+      showStatus('Browser push notifications enabled successfully!');
+    } else {
+      showStatus('Notifications were not granted.');
+    }
+  };
 
   const [userName, setUserName] = useState(user?.firstName || user?.fullName || '');
   const [isUpdatingName, setIsUpdatingName] = useState(false);
@@ -232,6 +247,42 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
           <Bell className="w-4 h-4 text-[#8B5E3C]" />
           Smart Reminder Notifications
         </h3>
+
+        {/* Native Web Push Notification Permission Banner */}
+        <div className="p-4 rounded-2xl bg-[#FFF9F2] border border-[#E8DDD3] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <h4 className="text-xs font-bold text-[#2C211B]">System Push Notifications</h4>
+              {pushPermission === 'granted' ? (
+                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                  Active
+                </span>
+              ) : pushPermission === 'denied' ? (
+                <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
+                  Blocked in Browser
+                </span>
+              ) : (
+                <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                  Permission Needed
+                </span>
+              )}
+            </div>
+            <p className="text-[11px] text-[#766A63] mt-0.5">
+              Receive alert sounds and desktop/phone popups 15 minutes before tasks and potty breaks.
+            </p>
+          </div>
+
+          {pushPermission !== 'granted' && (
+            <Button
+              size="sm"
+              variant="primary"
+              onClick={handleRequestPush}
+              className="text-xs whitespace-nowrap shrink-0"
+            >
+              Enable Notifications
+            </Button>
+          )}
+        </div>
 
         <div className="space-y-3">
           {[

@@ -6,13 +6,26 @@ class NotificationEngine {
   private timer: NodeJS.Timeout | null = null;
   private notifiedTaskIds: Set<string> = new Set();
   
+  public async requestPermission(): Promise<NotificationPermission> {
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      return 'denied';
+    }
+    try {
+      return await Notification.requestPermission();
+    } catch {
+      return 'denied';
+    }
+  }
+
+  public getPermissionStatus(): NotificationPermission {
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      return 'denied';
+    }
+    return Notification.permission;
+  }
+
   start() {
     if (this.timer) return;
-    
-    // Request push notification permissions on start if possible
-    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission().catch(() => {});
-    }
 
     this.timer = setInterval(() => this.check(), 60000); // Check every minute
     // Run an initial check 5 seconds after boot
