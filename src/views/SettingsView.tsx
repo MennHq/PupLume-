@@ -444,6 +444,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ puppy, onResetData }
             Replay Welcome Tour
           </Button>
 
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent('reopen-getting-started'));
+              showStatus('Getting Started checklist reopened!');
+            }}
+            leftIcon={<Dog className="w-3.5 h-3.5 text-[#8B5E3C]" />}
+          >
+            Getting Started Checklist
+          </Button>
+
           <label className="cursor-pointer">
             <input
               type="file"

@@ -30,6 +30,7 @@ import { OfflineAlert } from './components/pwa/OfflineAlert';
 import { ProPaywallModal } from './components/ui/ProPaywallModal';
 import { PaddlePaywall } from './components/ui/PaddlePaywall';
 import { FirstTimeWelcomeTour } from './components/ui/FirstTimeWelcomeTour';
+import { GettingStartedChecklist } from './components/onboarding/GettingStartedChecklist';
 import { engine as notificationEngine } from './lib/NotificationEngine';
 import posthog from 'posthog-js';
 
@@ -424,6 +425,9 @@ export default function App() {
 
       {/* First-time Interactive Welcome Tour (Shows once, 5 steps) */}
       <FirstTimeWelcomeTour puppy={activePuppy} />
+
+      {/* Getting Started Onboarding Checklist Widget */}
+      <GettingStartedChecklist puppy={activePuppy} onNavigate={setCurrentView} />
 
       {/* Main View Router */}
       {currentView === 'home' && (
